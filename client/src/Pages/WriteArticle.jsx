@@ -147,8 +147,7 @@ const WriteArticle = () => {
   </div>
 ) : (
   <div className="prose prose-lg mx-auto lg:w-1/2 bg-white rounded-2xl shadow-lg p-6 border border-gray-200 overflow-auto">
-    <div className="reset-tw"><ReactMarkdown >{content}</ReactMarkdown></div>
-         
+    <div className="reset-tw"><ReactMarkdown >{content}</ReactMarkdown></div>  
   </div>
 )}
     </div>

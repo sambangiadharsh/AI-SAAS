@@ -2,13 +2,13 @@ import { clerkClient } from "@clerk/express";
 
 export const auth = async (req, res, next) => {
   try {
-    const { userId ,has} = req.auth(); // from @clerk/express
+    const { userId ,has} = req.auth(); 
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Fetch user data
+
     const user = await clerkClient.users.getUser(userId);
 
     const hasPremiumPlan = await has({plan:'premium'});

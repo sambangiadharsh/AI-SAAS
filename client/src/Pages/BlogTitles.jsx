@@ -30,7 +30,7 @@ const BlogTitles = () => {
 
     try{
       setLoading(true);
-      const prompt=`suggest blog titles with keyword ${keyword} with category ${category} `;
+      const prompt=`suggest blog titles with keyword ${keyword} with category ${category}`;
       const {data}=await axios.post('/api/ai/blog-title',{prompt},
         {headers:{Authorization:`Bearer ${await getToken()}`}}
       )
@@ -129,7 +129,7 @@ const BlogTitles = () => {
       ) : (
         <>
           <Edit3 size={18} />
-          Generate Article
+          Generate Title
         </>
       )}
     </button>

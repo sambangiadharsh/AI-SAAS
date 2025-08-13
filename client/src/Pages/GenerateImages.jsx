@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Sparkles, Image as ImageIcon, Wand2 } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Wand2, Download } from "lucide-react";
 import axios from "axios";
-import {toast} from 'react-hot-toast'
+import { toast } from "react-hot-toast";
 import { useAuth } from "@clerk/clerk-react";
-axios.defaults.baseURL=import.meta.env.VITE_BASE_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 import ReactMarkdown from "react-markdown";
+
 const GenerateImages = () => {
   const styles = [
     "Photorealistic",
@@ -14,34 +15,45 @@ const GenerateImages = () => {
     "Oil Painting",
     "Pixel Art",
     "Gibili",
-    "Animated"
+    "Animated",
   ];
 
   const [input, setInput] = useState("");
   const [style, setStyle] = useState(styles[0]);
-  const [loading,setLoading]=useState(false);
-  const [content,setContent]=useState('')
-  const {getToken}=useAuth();
-  const handleGenerate = async(e) => {
+  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState("");
+  const { getToken } = useAuth();
+
+  const handleGenerate = async (e) => {
     e.preventDefault();
-     try{
+    try {
       setLoading(true);
-      const prompt=`Generate image of ${input} with ${style}} `;
-      const {data}=await axios.post('/api/ai/generate-image',{prompt},
-        {headers:{Authorization:`Bearer ${await getToken()}`}}
-      )
-     if(data.success){
-      setContent(data.content);
-     }
-     else{
-      toast.error(data.message);
-     }
-    }
-    catch(error){
+      const prompt = `Generate image of ${input} with ${style} `;
+      const { data } = await axios.post(
+        "/api/ai/generate-image",
+        { prompt },
+        { headers: { Authorization: `Bearer ${await getToken()}` } }
+      );
+      if (data.success) {
+        setContent(data.content);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
       toast.error(error.message);
     }
     setLoading(false);
+  };
 
+  // Function to download the image
+  const downloadImage = () => {
+    if (!content) return;
+    const link = document.createElement("a");
+    link.href = content;
+    link.download = "generated-image.png"; // or use any file name you want
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -49,7 +61,7 @@ const GenerateImages = () => {
       {/* Left Column - Form */}
       <form
         onSubmit={handleGenerate}
-        className="lg:w-1/3 bg-white rounded-2xl shadow-lg p-6 space-y-6 border border-gray-200"
+        className="lg:w-2/4 bg-white rounded-2xl shadow-lg p-6 space-y-6 border border-gray-200"
       >
         {/* Header */}
         <div className="flex items-center gap-3 border-b pb-3">
@@ -91,69 +103,70 @@ const GenerateImages = () => {
         </div>
 
         {/* Generate Button */}
-        
-
-         <button
-      type="submit"
-      disabled={loading}
-      className="flex items-center justify-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition w-full font-medium shadow"
-    >
-      {loading ? (
-        <>
-          <svg
-            className="animate-spin h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            ></path>
-          </svg>
-          Generating...
-        </>
-      ) : (
-        <>
-          <Wand2 size={18} />
-          Generate Images
-        </>
-      )}
-    </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition w-full font-medium shadow"
+        >
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+              Generating...
+            </>
+          ) : (
+            <>
+              <Wand2 size={18} />
+              Generate Images
+            </>
+          )}
+        </button>
       </form>
 
       {/* Right Column - Image Results */}
-      
-
-<div className="lg:w-2/3 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-  <div className="flex items-center gap-3 border-b pb-3">
-    <ImageIcon className="text-blue-500 w-6 h-6" />
-    <h1 className="text-xl font-bold text-gray-800">Generated Images</h1>
-  </div>
-
-  {/* Image Grid */}
-  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-    {!content ? (
-      <div className="col-span-full flex flex-col items-center justify-center text-gray-500 bg-gray-100 rounded-lg p-6">
-        <ImageIcon size={40} className="mb-2 text-gray-400" />
-        <p>Enter a prompt and choose a style to generate images</p>
-      </div>
-    ) : (
-      <div>
-        <img src={content} className='w-full h-full'/>
-      </div>
-    )}
-  </div>
-  </div>
+     {/* Image Grid */}
+<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+  {!content ? (
+    <div className="col-span-full flex flex-col items-center justify-center text-gray-500 bg-gray-100 rounded-lg p-6">
+      <ImageIcon size={40} className="mb-2 text-gray-400" />
+      <p>Enter a prompt and choose a style to generate images</p>
+    </div>
+  ) : (
+    <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+      <img
+        src={content}
+        alt="Generated"
+        className="max-h-[300px] w-full  object-contain"
+      />
+      <button
+        onClick={downloadImage}
+        className="absolute top-2 right-2 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full shadow flex items-center gap-1"
+        title="Download Image"
+      >
+        <Download size={16} />
+        Download
+      </button>
+    </div>
+  )}
+</div>
 
     </div>
   );

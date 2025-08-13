@@ -40,7 +40,7 @@ export const AiToolsData = [
         description: 'Create stunning visuals with our AI image generation tool, Experience the power of AI ',
         Icon: Image,
         bg: { from: '#20C363', to: '#11B97E' },
-        path: '/ai/generate-images'
+        path: '/ai/generate-image'
     },
     {
         title: 'Background Removal',

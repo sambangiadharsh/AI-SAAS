@@ -12,6 +12,8 @@ import ReviewResume from './Pages/ReviewResume'
 import GenerateImages from './Pages/GenerateImages'
 import { useAuth } from '@clerk/clerk-react'
 import {Toaster} from 'react-hot-toast'
+import AboutUs from './Pages/AboutUs'
+import Contact from './Pages/Contact'
 const App = () => {
   
     const {getToken}=useAuth();
@@ -35,9 +37,11 @@ const App = () => {
           <Route path='remove-object' element={<RemoveObject/>}/>
           <Route path='review-resume' element={<ReviewResume/>}/>
           <Route path='generate-image' element={<GenerateImages/>}/>
-          
+        
             
         </Route>
+        <Route path="/about-us" element={<AboutUs/>}/>
+        <Route path="/contact" element={<Contact/>}/>
 
       </Routes>
     </div>

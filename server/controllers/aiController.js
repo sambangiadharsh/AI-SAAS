@@ -32,7 +32,7 @@ export const generateArticle = async (req, res) => {
     }
 
     const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
+      model: "google/gemini-1.5-flash",
       messages: [
         {
           role: "user",
@@ -93,7 +93,7 @@ export const blogTitle = async (req, res) => {
     }
 
     const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
+      model: "google/gemini-1.5-flash",
       messages: [
         {
           role: "user",
@@ -361,7 +361,7 @@ export const resumeReview = async (req, res) => {
     `;
 
     const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
+      model: "google/gemini-1.5-flash",
       messages: [{ role: "user", content: prompt }],
       max_tokens:1000
     });

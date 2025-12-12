@@ -5,14 +5,20 @@ import axios from "axios";
 import FormData from "form-data";
 import fs from 'fs/promises';
 import pdf from 'pdf-parse/lib/pdf-parse.js';
-
 import cloudinary from "../config/cloudinary.js";
 
-// Configure OpenAI client for Gemini endpoint
-const openai = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_KEY,
+  baseURL: "https://openrouter.ai/api/v1"
 });
+
+
+// // Configure OpenAI client for Gemini endpoint
+// const openai = new OpenAI({
+//   apiKey: process.env.GEMINI_API_KEY,
+//   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai"
+// });
 
 
 //Generate article
@@ -21,8 +27,8 @@ export const generateArticle = async (req, res) => {
     const { userId } = req.auth();
     const { prompt, length, type } = req.body;
 
-    const plan = req.plan;     
-    const free_usage = req.free_usage; 
+    const plan = req.plan;
+    const free_usage = req.free_usage;
 
     if (plan !== "premium" && free_usage >= 10) {
       return res.json({
@@ -31,46 +37,36 @@ export const generateArticle = async (req, res) => {
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
+    // Generate article using OpenRouter FREE MODEL
+    const response = await openrouter.chat.completions.create({
+      model: "meta-llama/llama-3.2-1b-instruct",
       messages: [
         {
           role: "user",
-          content: `${prompt}. Please make the article around ${length} words.`
+          content: `${prompt}. Write an article of around ${length} words.`
         }
       ]
     });
 
-    const article = completion.choices[0].message.content;
+    const article = response.choices[0].message.content;
 
+    // Save to DB
     await sql`
-      INSERT INTO creations (user_id, prompt, content, type, publish, likes, created_at, updated_at) 
-      VALUES (
-        ${userId}, 
-        ${prompt}, 
-        ${article}, 
-        ${type || "article"}, 
-        false, 
-        '{}', 
-        NOW(), 
-        NOW()
-      )
+      INSERT INTO creations (user_id, prompt, content, type, publish, likes, created_at, updated_at)
+      VALUES (${userId}, ${prompt}, ${article}, ${type || "article"}, false, '{}', NOW(), NOW())
     `;
 
+    // Update free usage
     if (plan !== "premium") {
       await clerkClient.users.updateUserMetadata(userId, {
-        privateMetadata: {
-          free_usage: free_usage + 1
-        }
+        privateMetadata: { free_usage: free_usage + 1 }
       });
     }
 
-    res.json({
-      success: true,
-      content: article
-    });
+    res.json({ success: true, content: article });
+
   } catch (error) {
-    console.error("Error generating article:", error);
+    console.error("ARTICLE ERROR:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -79,38 +75,40 @@ export const generateArticle = async (req, res) => {
 
 export const blogTitle = async (req, res) => {
   try {
-    const { userId } = req.auth; 
-    const { prompt, category } = req.body; 
+    const { userId } = req.auth();  // FIXED
+    const { prompt, category } = req.body;
 
-    const plan = req.plan;       
-    const free_usage = req.free_usage; 
+    const plan = req.plan;
+    const free_usage = req.free_usage;
 
     if (plan !== "premium" && free_usage >= 10) {
       return res.json({
         success: false,
-        message: "Free limit reached. Upgrade to premium."
+        message: "Free limit reached. Upgrade to premium.",
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
+    // Use working FREE model
+    const completion = await openrouter.chat.completions.create({
+      model: "meta-llama/llama-3.2-1b-instruct",
       messages: [
         {
           role: "user",
-          content: `${prompt}`
-        }
-      ]
+          content: `${prompt} — Give me 5 creative blog titles.`,
+        },
+      ],
     });
 
     const article = completion.choices[0].message.content;
 
+    // Save to database
     await sql`
       INSERT INTO creations (user_id, prompt, content, type, publish, likes, created_at, updated_at) 
       VALUES (
         ${userId}, 
         ${prompt}, 
         ${article}, 
-        ${category || "blog title"}, -- 👈 use category if provided
+        ${category || "blog title"}, 
         false, 
         '{}', 
         NOW(), 
@@ -118,25 +116,24 @@ export const blogTitle = async (req, res) => {
       )
     `;
 
+    // Update free usage count
     if (plan !== "premium") {
       await clerkClient.users.updateUserMetadata(userId, {
         privateMetadata: {
-          free_usage: free_usage + 1
-        }
+          free_usage: free_usage + 1,
+        },
       });
     }
 
     res.json({
       success: true,
-      content: article
+      content: article,
     });
   } catch (error) {
     console.error("Error generating article:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
- 
-
 //Generate images
 export const generateImage = async (req, res) => {
   try {
@@ -340,43 +337,61 @@ export const removeObjectFromImage = async (req, res) => {
 export const resumeReview = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No resume file uploaded' });
+      return res.status(400).json({ success: false, message: "No resume file uploaded" });
     }
 
     const { userId } = req.auth();
-    const  resume=req.file;
-    if(resume.size>5*1024*1024){
-        return res.send.json({success:false,message:"Please upload resume with size less than 5MB"})
+    const resume = req.file;
+
+    if (resume.size > 5 * 1024 * 1024) {
+      return res.json({
+        success: false,
+        message: "Please upload a resume smaller than 5MB"
+      });
     }
-  
+
+    // Read PDF  
     const pdfBuffer = await fs.readFile(req.file.path);
 
-    // Parse PDF
     const data = await pdf(pdfBuffer);
-    const resumeText = data.text;
+    const resumeText = data.text || "No text could be extracted.";
 
     const prompt = `
-      Please review the following resume text and provide constructive feedback:
+      You are a professional resume reviewer.
+      Analyze the resume below and provide:
+      ✔ Strengths  
+      ✔ Weaknesses  
+      ✔ Suggestions for improvement  
+      ✔ ATS score improvement tips  
+      ✔ Formatting suggestions  
+
+      Resume Content:
       ${resumeText}
     `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gemini-1.5-flash",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens:1000
+    // 🟢 Use OpenRouter with working free model
+    const completion = await openrouter.chat.completions.create({
+      model: "meta-llama/llama-3.2-1b-instruct",
+      messages: [{ role: "user", content: prompt }]
     });
 
-    await fs.unlink(resume.path);
+    await fs.unlink(resume.path); // remove temp file
 
     const review = completion.choices?.[0]?.message?.content || "No review generated.";
+
+    // Save to DB
     await sql`
-      INSERT INTO creations (user_id, prompt, content, type, publish, likes, created_at, updated_at) 
+      INSERT INTO creations (user_id, prompt, content, type, publish, likes, created_at, updated_at)
       VALUES (${userId}, 'resume review', ${review}, 'review resume', false, '{}', NOW(), NOW())
     `;
 
     res.json({ success: true, content: review });
+
   } catch (error) {
     console.error("Error in resume review:", error);
-    res.status(500).json({ success: false, message: "Server error during resume review" });
+    res.status(500).json({
+      success: false,
+      message: "Server error during resume review"
+    });
   }
 };

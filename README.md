@@ -74,14 +74,14 @@ VITE_BASE_URL=https://your-backend.onrender.com
 ---
 
 ### Backend (`.env`)
-
+```
 
 PORT=3000
 DB_URL=postgresql://user:password@host/dbname?sslmode=require
 FRONTEND_URL=https://your-frontend.onrender.com
 
 CLERK_SECRET_KEY=your_clerk_secret_key
-
+```
 
 ---
 

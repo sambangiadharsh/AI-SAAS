@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import user_group from "../assets/user_group.png";
+import user_group from "../assets/user_group.png"
+import { CheckCircle } from "lucide-react"
 
 const Hero = () => {
   const navigate = useNavigate()
@@ -32,14 +33,37 @@ const Hero = () => {
         </button>
       </div>
 
-      <div className="mt-10 flex items-center gap-3 text-gray-500 text-sm">
-        <img
-          src={user_group}
-          alt="User Group"
-          
-        />
-        <span>Trusted by 100k+ people</span>
+    <div className="mt-14 w-full overflow-hidden">
+  <div className="flex items-center gap-10 animate-slide-left whitespace-nowrap hover:[animation-play-state:paused]">
+    
+    {["Idea", "Create", "Improve", "Publish"].map((step, i) => (
+      <div key={i} className="flex items-center gap-8">
+        
+        {/* Step Pill */}
+        <div className="px-8 py-3 rounded-full 
+                        bg-gradient-to-r from-blue-50 to-indigo-50
+                        border border-blue-200
+                        text-blue-700
+                        text-base sm:text-lg
+                        font-semibold
+                        shadow-md">
+          {step}
+        </div>
+
+        {/* Connector */}
+        {i < 3 && (
+          <div className="flex items-center">
+            <div className="w-10 h-[2px] bg-gradient-to-r from-blue-300 to-indigo-300"></div>
+            <span className="mx-2 text-blue-400 text-xl">➜</span>
+            <div className="w-10 h-[2px] bg-gradient-to-r from-indigo-300 to-blue-300"></div>
+          </div>
+        )}
       </div>
+    ))}
+
+  </div>
+</div>
+
     </div>
   )
 }

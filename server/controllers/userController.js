@@ -3,12 +3,41 @@ import sql from "../config/db.js";
 export const getUserCreations = async (req, res) => {
   try {
     const { userId } = req.auth();
-    const creations = await sql`SELECT * FROM creations WHERE user_id = ${userId} ORDER BY created_at DESC`;
-    res.json({ success: true, creations });
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+        const creations = await sql`
+      SELECT *
+      FROM creations
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+      const totalResult = await sql`
+      SELECT COUNT(*) 
+      FROM creations 
+      WHERE user_id = ${userId}
+    `;
+
+    const total = Number(totalResult[0].count);
+       res.json({
+      success: true,
+      creations,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: offset + creations.length < total
+      }
+    });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
+
 
 export const toggleLikeCreations = async (req, res) => {
   try {

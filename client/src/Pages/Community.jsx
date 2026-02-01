@@ -1,72 +1,94 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-axios.defaults.baseURL=import.meta.env.VITE_BASE_URL;
-export default function Community() {
-  const [creations, setCreations] = useState([]);
-  const [likes, setLikes] = useState({}); // Track liked state for each creation
-  
-  useEffect(() => {
-    // Fetch creations from backend API
-    axios.get("/getuser-creations")
-      .then((res) => res.json())
-      .then((data) => setCreations(data))
-      .catch((err) => console.error("Error fetching creations:", err));
-  }, []);
+import React from "react";
+import { Lightbulb, CheckCircle } from "lucide-react";
 
-  const toggleLike = (id) => {
-    setLikes((prev) => ({
-      ...prev,
-      [id]: !prev[id], // Toggle like/unlike
-    }));
-  };
-
+const PromptHelperAdvanced = () => {
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-5">
-      <h1 className="text-3xl font-bold text-center mb-8">Community Creations</h1>
+    <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Lightbulb className="w-5 h-5 text-blue-600" />
+        </div>
+        <h3 className="text-xl font-semibold text-gray-800">
+          Prompting Assistant
+        </h3>
+      </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {creations.map((creation) => (
-          <div
-            key={creation._id}
-            className="bg-white shadow-lg rounded-xl p-4 flex flex-col"
-          >
-            {/* Image */}
-            {creation.image && (
-              <img
-                src={creation.image}
-                alt={creation.title}
-                className="rounded-lg object-cover h-56 w-full"
-              />
-            )}
+      {/* Prompt Framework */}
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          Use this 4-step framework for better results:
+        </p>
 
-            {/* Title & Description */}
-            <h2 className="text-xl font-semibold mt-4">{creation.title}</h2>
-            <p className="text-gray-600 flex-1">{creation.description}</p>
-
-            {/* Like Button */}
-            <div className="mt-4 flex items-center">
-              <button
-                onClick={() => toggleLike(creation._id)}
-                className="focus:outline-none"
-              >
-                <img
-                  src={
-                    likes[creation._id]
-                      ? "https://cdn-icons-png.flaticon.com/512/833/833472.png" // Liked (heart filled)
-                      : "https://cdn-icons-png.flaticon.com/512/1077/1077035.png" // Not liked (heart outline)
-                  }
-                  alt="like toggle"
-                  className="w-8 h-8"
-                />
-              </button>
-              <span className="ml-2 text-gray-700">
-                {likes[creation._id] ? "Liked" : "Like"}
-              </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { title: "Goal", desc: "What do you want to achieve?" },
+            { title: "Context", desc: "Who is it for? Any background?" },
+            { title: "Constraints", desc: "Format, length, tone?" },
+            { title: "Output", desc: "What should the final answer look like?" }
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="border rounded-xl p-4 bg-gray-50"
+            >
+              <p className="font-semibold text-gray-800">{item.title}</p>
+              <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Examples */}
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          Example comparison
+        </p>
+
+        <div className="space-y-4">
+          <div className="rounded-xl bg-red-50 border border-red-100 p-4">
+            <p className="text-xs font-semibold text-red-600 mb-1">
+              ❌ Weak Prompt
+            </p>
+            <p className="text-sm text-gray-800">
+              Write about artificial intelligence.
+            </p>
           </div>
-        ))}
+
+          <div className="rounded-xl bg-green-50 border border-green-100 p-4">
+            <p className="text-xs font-semibold text-green-600 mb-1">
+              ✅ Strong Prompt
+            </p>
+            <p className="text-sm text-gray-800">
+              Explain how artificial intelligence is used in healthcare for
+              beginners. Use simple language, include 3 real-world examples,
+              and present the answer in bullet points.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Pro Tips */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4">
+        <p className="text-sm font-medium text-gray-700 mb-3">
+          Pro Tips
+        </p>
+
+        <ul className="space-y-2 text-sm text-gray-700">
+          {[
+            "Mention the target audience explicitly",
+            "Specify output format (steps, table, bullets)",
+            "Add tone or style (professional, friendly, concise)",
+            "Limit scope to avoid generic responses"
+          ].map((tip, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
-}
+};
 
+export default PromptHelperAdvanced;

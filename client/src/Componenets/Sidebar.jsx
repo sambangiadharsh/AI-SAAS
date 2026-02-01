@@ -14,7 +14,7 @@ const navItems = [
   { to: "/ai/remove-background", label: "Remove Background", Icon: Eraser },
   { to: "/ai/remove-object", label: "Remove Object", Icon: Scissors },
   { to: "/ai/review-resume", label: "Review Resume", Icon: FileText },
-  { to: "/ai/community", label: "Community", Icon: Users }
+  { to: "/ai/community", label: "Prompting Help", Icon: Users }
 ];
 
 const Sidebar = ({ sidebar, setSidebar }) => {

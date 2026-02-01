@@ -13,7 +13,7 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
    
-    "https://ai-saas-jr6l.vercel.app"
+    "https://ai-saas-jr6l.vercel.app",
     "https://ai-saas-frontend-k1as.onrender.com"
   ],
   credentials: true

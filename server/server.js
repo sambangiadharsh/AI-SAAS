@@ -12,6 +12,7 @@ const app = express()
 app.use(cors({
   origin: [
     "http://localhost:5173",
+    "https://ai-saas-jr6l-6z6cgfw5r-adarshs-projects-44fa6430.vercel.app",
     "https://ai-saas-frontend-k1as.onrender.com"
   ],
   credentials: true
